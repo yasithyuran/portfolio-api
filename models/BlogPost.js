@@ -27,7 +27,7 @@ const blogPostSchema = new mongoose.Schema(
     tags: [String],
     published: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   { timestamps: true }
