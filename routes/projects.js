@@ -2,29 +2,28 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
 
-// GET all projects
+// GET all projects (pinned first)
 router.get('/', async (req, res) => {
   try {
-    const projects = await Project.find().sort({ createdAt: -1 });
+    const projects = await Project.find()
+      .sort({ pinned: -1, createdAt: -1 }); // Pinned first, then by date
     res.json(projects);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// GET featured projects (MUST come BEFORE /:id route!)
+// GET featured projects only (for homepage)
 router.get('/featured', async (req, res) => {
   try {
-    const projects = await Project.find({ featured: true }).limit(3).sort({ createdAt: -1 });
-    console.log('✅ Featured projects fetched:', projects.length);
+    const projects = await Project.find({ featured: true }).limit(3);
     res.json(projects);
   } catch (error) {
-    console.error('❌ Error fetching featured projects:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
 
-// GET single project (comes AFTER /featured)
+// GET single project by ID
 router.get('/:id', async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -35,7 +34,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// CREATE project (admin only)
+// CREATE project
 router.post('/', async (req, res) => {
   try {
     const project = new Project(req.body);
@@ -48,7 +47,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// UPDATE project (admin only)
+// UPDATE project
 router.put('/:id', async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
@@ -65,12 +64,12 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE project (admin only)
+// DELETE project
 router.delete('/:id', async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found' });
-    console.log('✅ Project deleted:', project._id);
+    console.log('✅ Project deleted:', req.params.id);
     res.json({ message: 'Project deleted' });
   } catch (error) {
     console.error('❌ Error deleting project:', error.message);
